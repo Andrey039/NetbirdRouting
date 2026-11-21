@@ -121,6 +121,19 @@ editor.regexField.stringValue = ""
 editor.updateValidation()
 check(!editorSave.isEnabled, "editor cannot save empty preset regex")
 check(NetworkFilter("PROD").matches(on), "case-insensitive regex")
+// README examples: invert negates the combined ID/info match, not each field.
+let prodDomain = NetEntry(id: "office", info: "prod.example.test", selected: true)
+check(!NetworkFilter("prod|uat", invert: true).matches(on), "inverted alternatives exclude matching ID")
+check(!NetworkFilter("prod|uat", invert: true).matches(prodDomain), "inverted alternatives exclude matching info")
+check(NetworkFilter("prod|uat", invert: true).matches(dev), "inverted alternatives retain unrelated network")
+check(NetworkFilter("^(?!.*prod).*$").matches(on), "negative lookahead on info does not exclude matching ID")
+let privateIPv4 = NetworkFilter(#"^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)"#, invert: true)
+for prefix in ["10.20.0.0/16", "192.168.1.0/24", "172.16.0.0/16", "172.31.0.0/16"] {
+    check(!privateIPv4.matches(NetEntry(id: "office", info: prefix, selected: true)), "Non-local excludes \(prefix)")
+}
+for prefix in ["172.15.0.0/16", "172.32.0.0/16", "100.64.0.0/10", "2001:db8::/32", "example.test"] {
+    check(privateIPv4.matches(NetEntry(id: "office", info: prefix, selected: true)), "Non-local retains \(prefix)")
+}
 check(NetworkFilter("").matches(dev) && !NetworkFilter("", invert: true).matches(dev), "empty/inverted filter")
 check(NetworkFilter("10\\.0").matches(on), "filter matches network info")
 check(NetworkFilter("^(?!dev).*").matches(on.id) && !NetworkFilter("^(?!dev).*").matches(dev.id), "NSRegularExpression supports negative lookahead")

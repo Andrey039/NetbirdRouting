@@ -14,8 +14,8 @@ test -x "$APP/Contents/MacOS/NetbirdRouting"
 test -x "$STANDALONE"
 codesign --verify --strict "$APP"
 codesign --verify "$STANDALONE"
-lipo -verify_arch "$ARCH" "$APP/Contents/MacOS/NetbirdRouting"
-lipo -verify_arch "$ARCH" "$STANDALONE"
+lipo "$APP/Contents/MacOS/NetbirdRouting" -verify_arch "$ARCH"
+lipo "$STANDALONE" -verify_arch "$ARCH"
 plutil -lint "$APP/Contents/Info.plist"
 
 mkdir -p dist
