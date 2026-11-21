@@ -1,0 +1,25 @@
+# Generated applications and build output
+/build/
+/dist/
+/*.app/
+
+# macOS metadata and clipboard files
+.DS_Store
+._*
+*.textClipping
+
+# Local configuration and credentials (never publish)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Editor and Swift tooling output
+.idea/
+.vscode/
+.build/
+.swiftpm/
+*.xcuserstate
