@@ -83,3 +83,51 @@ jobs:
             dist/SHA256SUMS
           if-no-files-found: error
           retention-days: 14
+
+  release:
+    name: Publish GitHub Release
+    needs: [secrets, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download binaries
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: NetbirdRouting-macos-*
+          path: artifacts
+          merge-multiple: false
+
+      - name: Verify and collect release assets
+        shell: bash
+        run: |
+          mkdir -p release
+          : > release/SHA256SUMS
+          for arch in arm64 x86_64; do
+            artifact="artifacts/NetbirdRouting-macos-$arch"
+            (cd "$artifact" && sha256sum -c SHA256SUMS)
+            for kind in app binary; do
+              cp "$artifact/NetbirdRouting-macos-$arch-$kind.zip" release/
+            done
+            cat "$artifact/SHA256SUMS" >> release/SHA256SUMS
+          done
+          (cd release && sha256sum -c SHA256SUMS)
+
+      - name: Publish release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            options=(--verify-tag --draft --generate-notes)
+            if [[ "$RELEASE_TAG" == *-* ]]; then
+              options+=(--prerelease)
+            fi
+            gh release create "$RELEASE_TAG" \
+              --title "NetbirdRouting $RELEASE_TAG" "${options[@]}"
+          fi
+          gh release upload "$RELEASE_TAG" release/*.zip release/SHA256SUMS --clobber
+          gh release edit "$RELEASE_TAG" --draft=false

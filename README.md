@@ -34,18 +34,19 @@
 
 ## Готовая сборка
 
-В GitHub откройте **Actions → Build macOS → успешный запуск → Artifacts**.
-Выберите `NetbirdRouting-macos-arm64` для Apple Silicon или
-`NetbirdRouting-macos-x86_64` для Intel. Артефакт содержит:
+Откройте [GitHub Releases](https://github.com/Andrey039/NetbirdRouting/releases)
+и скачайте ZIP из **Assets** нужной версии.
+Выберите `arm64` для Apple Silicon или `x86_64` для Intel:
 
 - `NetbirdRouting-macos-<arch>-app.zip` — приложение для обычного запуска;
 - `NetbirdRouting-macos-<arch>-binary.zip` — отдельный исполняемый файл;
-- `SHA256SUMS` — контрольные суммы обоих ZIP.
+- `SHA256SUMS` — контрольные суммы всех четырёх ZIP релиза.
 
-После распаковки внешнего архива артефакта можно проверить ZIP:
+Скачайте `SHA256SUMS` в каталог с ZIP и проверьте загруженные файлы
+(флаг `--ignore-missing` пропускает архивы другой архитектуры):
 
 ```sh
-shasum -a 256 -c SHA256SUMS
+shasum -a 256 --ignore-missing -c SHA256SUMS
 ```
 
 Распакуйте `*-app.zip`, перенесите `NetbirdRouting.app` в `/Applications`
@@ -212,7 +213,14 @@ zsh test.sh
 проверку подписи и упаковку на Apple Silicon и Intel **только при push тега `v*`**
 (например, `v1.0.0`). Push ветки и pull request сборку не запускают.
 Артефакты хранятся 14 дней;
-workflow не создаёт GitHub Release. Сертификаты и repository secrets не нужны.
+после успешного сканирования секретов и обеих сборок workflow создаёт
+**GitHub Release** для тега с четырьмя ZIP и общим `SHA256SUMS`.
+Сначала создаётся draft, который публикуется после загрузки файлов.
+Теги с дефисом (например, `v1.1.0-rc.1`) публикуются как prerelease.
+При повторном запуске файлы существующего релиза обновляются.
+Копии сборок также доступны в **Actions → Artifacts**.
+Сертификаты и repository secrets не нужны: публикация использует встроенный
+`GITHUB_TOKEN`, права `contents: write` выданы только job публикации.
 Отдельный CI job проверяет доступную Git-историю и рабочее дерево с помощью
 Gitleaks; автоматическое сканирование не заменяет проверку изменений перед commit.
 
