@@ -209,8 +209,9 @@ zsh test.sh
 Они не требуют установленного NetBird и не меняют реальные сети.
 
 [GitHub Actions](.github/workflows/build.yml) запускает тесты, сборку,
-проверку подписи и упаковку на Apple Silicon и Intel при push в `main`,
-push тега `v*`, pull request или ручном запуске. Артефакты хранятся 14 дней;
+проверку подписи и упаковку на Apple Silicon и Intel **только при push тега `v*`**
+(например, `v1.0.0`). Push ветки и pull request сборку не запускают.
+Артефакты хранятся 14 дней;
 workflow не создаёт GitHub Release. Сертификаты и repository secrets не нужны.
 Отдельный CI job проверяет доступную Git-историю и рабочее дерево с помощью
 Gitleaks; автоматическое сканирование не заменяет проверку изменений перед commit.
